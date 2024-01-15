@@ -6524,6 +6524,7 @@ dependencies = [
 name = "reth-revm"
 version = "0.1.0-alpha.14"
 dependencies = [
+ "rand 0.8.5",
  "reth-consensus-common",
  "reth-interfaces",
  "reth-primitives",
