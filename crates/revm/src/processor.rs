@@ -21,6 +21,8 @@ use revm::{
 };
 use std::{sync::Arc, time::Instant};
 
+use rand::seq::SliceRandom;
+
 #[cfg(not(feature = "optimism"))]
 use reth_primitives::revm::compat::into_reth_log;
 #[cfg(not(feature = "optimism"))]
@@ -271,6 +273,7 @@ impl<'a> EVMProcessor<'a> {
         let (receipts, cumulative_gas_used) = self.execute_transactions(block, total_difficulty)?;
 
         // Check if gas used matches the value set in header.
+        // this probably needs to be removed due to reordering
         if block.gas_used != cumulative_gas_used {
             let receipts = Receipts::from_block_receipt(receipts);
             return Err(BlockValidationError::BlockGasUsed {
@@ -422,13 +425,21 @@ impl<'a> BlockExecutor for EVMProcessor<'a> {
             return Ok((Vec::new(), 0))
         }
 
+        // get randomness from OS and shuffle transactions
+        let mut rng = rand::thread_rng();
+        let mut reordered_block: Vec<_> = block.transactions_with_sender().collect();
+        reordered_block.shuffle(&mut rng);
+
         let mut cumulative_gas_used = 0;
         let mut receipts = Vec::with_capacity(block.body.len());
-        for (sender, transaction) in block.transactions_with_sender() {
+
+        for (sender, transaction) in reordered_block {
             let time = Instant::now();
             // The sum of the transaction’s gas limit, Tg, and the gas utilized in this block prior,
             // must be no greater than the block’s gasLimit.
             let block_available_gas = block.header.gas_limit - cumulative_gas_used;
+
+            // this probably needs to be removed due to reordering
             if transaction.gas_limit() > block_available_gas {
                 return Err(BlockValidationError::TransactionGasLimitMoreThanAvailableBlockGas {
                     transaction_gas_limit: transaction.gas_limit(),
