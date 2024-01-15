@@ -528,7 +528,7 @@ pub fn verify_receipt<'a>(
         return Err(BlockValidationError::ReceiptRootDiff(
             GotExpected { got: receipts_root, expected: expected_receipts_root }.into(),
         )
-        .into());
+        .into())
     }
 
     // Create header log bloom.
