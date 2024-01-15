@@ -280,7 +280,7 @@ impl<'a> EVMProcessor<'a> {
                 gas: GotExpected { got: cumulative_gas_used, expected: block.gas_used },
                 gas_spent_by_tx: receipts.gas_spent_by_tx()?,
             }
-            .into());
+            .into())
         }
         let time = Instant::now();
         self.apply_post_execution_state_change(block, total_difficulty)?;
@@ -291,8 +291,8 @@ impl<'a> EVMProcessor<'a> {
             !self
                 .prune_modes
                 .account_history
-                .map_or(false, |mode| mode.should_prune(block.number, tip))
-                && !self
+                .map_or(false, |mode| mode.should_prune(block.number, tip)) &&
+                !self
                     .prune_modes
                     .storage_history
                     .map_or(false, |mode| mode.should_prune(block.number, tip))
@@ -339,7 +339,7 @@ impl<'a> EVMProcessor<'a> {
             self.prune_modes.receipts.map_or(false, |mode| mode.should_prune(block_number, tip))
         {
             receipts.clear();
-            return Ok(());
+            return Ok(())
         }
 
         // All receipts from the last 128 blocks are required for blockchain tree, even with
@@ -347,7 +347,7 @@ impl<'a> EVMProcessor<'a> {
         let prunable_receipts =
             PruneMode::Distance(MINIMUM_PRUNING_DISTANCE).should_prune(block_number, tip);
         if !prunable_receipts {
-            return Ok(());
+            return Ok(())
         }
 
         let contract_log_pruner = self.prune_modes.receipts_log_filter.group_by_block(tip, None)?;
@@ -405,7 +405,7 @@ impl<'a> BlockExecutor for EVMProcessor<'a> {
                 verify_receipt(block.header.receipts_root, block.header.logs_bloom, receipts.iter())
             {
                 debug!(target: "evm", ?error, ?receipts, "receipts verification failed");
-                return Err(error);
+                return Err(error)
             };
             self.stats.receipt_root_duration += time.elapsed();
         }
@@ -422,7 +422,7 @@ impl<'a> BlockExecutor for EVMProcessor<'a> {
 
         // perf: do not execute empty blocks
         if block.body.is_empty() {
-            return Ok((Vec::new(), 0));
+            return Ok((Vec::new(), 0))
         }
 
         // get randomness from OS and shuffle transactions
@@ -445,7 +445,7 @@ impl<'a> BlockExecutor for EVMProcessor<'a> {
                     transaction_gas_limit: transaction.gas_limit(),
                     block_available_gas,
                 }
-                .into());
+                .into())
             }
             // Execute transaction.
             let ResultAndState { result, state } = self.transact(transaction, *sender)?;
@@ -537,7 +537,7 @@ pub fn verify_receipt<'a>(
         return Err(BlockValidationError::BloomLogDiff(
             GotExpected { got: logs_bloom, expected: expected_logs_bloom }.into(),
         )
-        .into());
+        .into())
     }
 
     Ok(())
